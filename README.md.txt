@@ -19,6 +19,18 @@ Features:
 -Project Structure
 
 -----------------------------------------------------------------------
+Usage
+
+Run the pipeline from the repository root:
+	python run_pipeline.py
+
+The pipeline will:
+	-Download genomes if not already present
+	-Sample random genome regions
+	-Design nested PCR assays
+	-Export results
+
+-----------------------------------------------------------------------
 Project Structure
 Nested-PCR-Assay-Design
 │
@@ -102,17 +114,6 @@ Example:
 	E_coli : NC_000913.3
 	Human_chr1 : NC_000001.11
 
------------------------------------------------------------------------
-Usage
-
-Run the pipeline from the repository root:
-	python run_pipeline.py
-
-The pipeline will:
-	-Download genomes if not already present
-	-Sample random genome regions
-	-Design nested PCR assays
-	-Export results
 -----------------------------------------------------------------------
 Output
 Generated assays are stored in:
