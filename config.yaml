@@ -1,0 +1,76 @@
+# config.yaml
+
+<<<<<<< HEAD
+# -----------------------------
+# Organisms to process
+# -----------------------------
+organisms:
+  E_coli: NC_000913.3
+  #Human_chr10: NC_000010.11
+  # Add more as needed
+  # Format: <Organism Name>: <NCBI accession>
+
+# -----------------------------
+# General pipeline settings
+# -----------------------------
+pipeline:
+  assays_per_org: 10
+  region_length: 10000
+  email: your_email@example.com
+
+# -----------------------------
+# Primer3 settings
+# -----------------------------
+primer3:
+  outer:
+    PRIMER_OPT_SIZE: 20
+    PRIMER_MIN_SIZE: 18
+    PRIMER_MAX_SIZE: 25
+    PRIMER_OPT_TM: 60.0
+    PRIMER_MIN_TM: 57.0
+    PRIMER_MAX_TM: 63.0
+    PRIMER_MIN_GC: 40.0
+    PRIMER_MAX_GC: 60.0
+    PRIMER_MAX_POLY_X: 4
+    PRIMER_PRODUCT_SIZE_RANGE: [[230, 400]]
+  inner:
+    PRIMER_OPT_SIZE: 20
+    PRIMER_MIN_SIZE: 18
+    PRIMER_MAX_SIZE: 25
+    PRIMER_OPT_TM: 60.0
+    PRIMER_MIN_TM: 57.0
+    PRIMER_MAX_TM: 63.0
+    PRIMER_MIN_GC: 40.0
+    PRIMER_MAX_GC: 60.0
+    PRIMER_MAX_POLY_X: 4
+    PRIMER_PRODUCT_SIZE_RANGE: [[120, 200]]
+=======
+general:
+  # Relative default base folder inside repo; can be overridden
+  base_folder: "Designed Assays"
+  genome_folder: "Genomes"
+  output_folder: "Organism_Assays"
+  region_length: 10000  # length of genome region to pull for assays
+
+ncbi:
+  email: "your_email@example.com"  # required for Entrez
+
+organisms:
+  - name: "Escherichia coli"
+    accession: "NC_000913.3"
+  - name: "Homo sapiens"
+    accession: "NC_000010.11"
+
+assays:
+  num_assays_per_organism: 3
+
+primer3_settings:
+  PRIMER_OPT_SIZE: 20
+  PRIMER_MIN_SIZE: 18
+  PRIMER_MAX_SIZE: 25
+  PRIMER_MIN_TM: 57.0
+  PRIMER_OPT_TM: 60.0
+  PRIMER_MAX_TM: 63.0
+  PRIMER_MAX_POLY_X: 4
+  PRIMER_SALT_MONOVALENT: 50.0
+>>>>>>> b384dd6a8d10c890e61cb5b684003e1fe7c5baba
