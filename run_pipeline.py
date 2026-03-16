@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from pathlib import Path
 import yaml
 from src.assay_pipeline import batch_assay_pipeline
@@ -32,7 +31,7 @@ batch_assay_pipeline(
     outer_primer_settings=OUTER_SETTINGS,
     inner_primer_settings=INNER_SETTINGS
 )
-=======
+
 import argparse
 from pathlib import Path
 import yaml
@@ -137,4 +136,4 @@ def main():
 
 if __name__ == "__main__":
     main()
->>>>>>> b384dd6a8d10c890e61cb5b684003e1fe7c5baba
+
