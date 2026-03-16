@@ -3,19 +3,10 @@ PCR Assay Designer
 Automated nested PCR assay design pipeline built with Python and Primer3.
 The pipeline downloads genomes from NCBI, randomly samples genome regions, and designs two-level nested PCR assays with annotated outputs.
 
-**Primer design for specific user-input genome sequences is not currently supported.**
+Primer design for specific user-input genome sequences is not currently supported. 
 
-<<<<<<< HEAD
 -----------------------------------------------------------------------
 Features:
-=======
-- Downloads genomes from NCBI
-- Randomly samples genome regions
-- Designs two level nested PCR assays
-- Outputs primer sequences and amplicons
-- Generates ApE annotated files
-- YAML config file for organism genomes and Primer3 settings
->>>>>>> b384dd6a8d10c890e61cb5b684003e1fe7c5baba
 
 -Automatic genome download from NCBI
 -Local genome caching to avoid repeated downloads
@@ -26,18 +17,6 @@ Features:
 -Annotated ApE plasmid files for visualization
 -CSV and TXT primer reports
 -Project Structure
-
------------------------------------------------------------------------
-Usage
-
-Run the pipeline from the repository root:
-	python run_pipeline.py
-
-The pipeline will:
-	-Download genomes if not already present
-	-Sample random genome regions
-	-Design nested PCR assays
-	-Export results
 
 -----------------------------------------------------------------------
 Project Structure
@@ -52,8 +31,6 @@ Nested-PCR-Assay-Design
 └── Designed Assays
     ├── Genomes
     └── Assays by Organism
-	├──Assay 1
-	└──Assay 2 etc...
 
 -----------------------------------------------------------------------
 File and Folder Descriptions
@@ -88,38 +65,22 @@ Dependencies include:
 	primer3-py
 	PyYAML
 
-<<<<<<< HEAD
 -----------------------------------------------------------------------
 Configuration
 
 All pipeline settings are controlled through config.yaml.
 
 Example config.yaml:
-=======
-##Configuration
-
-Update setting in the config.yaml file
-
-## Usage
-
-python run_pipeline.py
->>>>>>> b384dd6a8d10c890e61cb5b684003e1fe7c5baba
 
 	ORGANISMS:
 		E_coli: NC_000913.3
 
-<<<<<<< HEAD
 	pipeline:
 		assays_per_org: 5
 		region_length: 10000
 		email: your_email@example.com
 
 	primer3:
-=======
-Assays for each organism are saved to:
-
-PCR_Assay_Design/organisms/
->>>>>>> b384dd6a8d10c890e61cb5b684003e1fe7c5baba
 
 		outer:
 			PRIMER_OPT_SIZE: 20
@@ -127,7 +88,6 @@ PCR_Assay_Design/organisms/
 			PRIMER_MAX_SIZE: 25
 			PRIMER_PRODUCT_SIZE_RANGE: [[230, 400]]
 
-<<<<<<< HEAD
 		inner:
 			PRIMER_PRODUCT_SIZE_RANGE: [[120, 200]]
 -----------------------------------------------------------------------
@@ -142,6 +102,17 @@ Example:
 	E_coli : NC_000913.3
 	Human_chr1 : NC_000001.11
 
+-----------------------------------------------------------------------
+Usage
+
+Run the pipeline from the repository root:
+	python run_pipeline.py
+
+The pipeline will:
+	-Download genomes if not already present
+	-Sample random genome regions
+	-Design nested PCR assays
+	-Export results
 -----------------------------------------------------------------------
 Output
 Generated assays are stored in:
@@ -196,6 +167,3 @@ Future Improvements
 License
 
 MIT License
-=======
-PCR_Assay_Design/genomes/
->>>>>>> b384dd6a8d10c890e61cb5b684003e1fe7c5baba
