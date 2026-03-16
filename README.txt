@@ -18,8 +18,8 @@ Features:
 -----------------------------------------------------------------------
 Installation
 Clone the repository:
-	git clone https://github.com/ajschmeltzer/Nested-PCR-Assay-Design
-	cd Nested-PCR-Assay-Design
+	git clone https://github.com/ajschmeltzer/Nested-PCR-Model-Assay-Design
+	cd Nested-PCR-Model-Assay-Design
 
 Install dependencies:
 	pip install -r requirements.txt
