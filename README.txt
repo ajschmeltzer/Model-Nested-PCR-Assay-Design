@@ -4,7 +4,6 @@ Automated nested PCR assay design pipeline built with Python and Primer3.
 The pipeline downloads genomes from NCBI, randomly samples genome regions, and designs two-level nested PCR assays with annotated outputs.
 
 Primer design for specific user-input genome sequences is not currently supported. 
-
 -----------------------------------------------------------------------
 Features:
 -Automatic genome download from NCBI
@@ -16,7 +15,19 @@ Features:
 -Annotated ApE plasmid files for visualization
 -CSV and TXT primer reports
 -Project Structure
+-----------------------------------------------------------------------
+Installation
+Clone the repository:
+	git clone https://github.com/ajschmeltzer/Nested-PCR-Assay-Design
+	cd Nested-PCR-Assay-Design
 
+Install dependencies:
+	pip install -r requirements.txt
+
+Dependencies include:
+	Biopython
+	primer3-py
+	PyYAML
 -----------------------------------------------------------------------
 Usage
 Run the pipeline from the repository root:
@@ -27,7 +38,6 @@ The pipeline will:
 	-Sample random genome regions
 	-Design nested PCR assays
 	-Export results
-
 -----------------------------------------------------------------------
 Project Structure
 Nested-PCR-Assay-Design
@@ -41,7 +51,6 @@ Nested-PCR-Assay-Design
 └── Designed Assays
     ├── Genomes
     └── Assays by Organism
-
 -----------------------------------------------------------------------
 File and Folder Descriptions
 config.yaml
@@ -58,21 +67,6 @@ Designed Assays/Genomes
 
 Designed Assays/Assays by Organism
 	Generated assay output folders.
-
------------------------------------------------------------------------
-Installation
-Clone the repository:
-	git clone https://github.com/ajschmeltzer/Nested-PCR-Assay-Design
-	cd Nested-PCR-Assay-Design
-
-Install dependencies:
-	pip install -r requirements.txt
-
-Dependencies include:
-	Biopython
-	primer3-py
-	PyYAML
-
 -----------------------------------------------------------------------
 Configuration
 All pipeline settings are controlled through config.yaml.
@@ -105,7 +99,6 @@ Format:
 Example:
 	E_coli : NC_000913.3
 	Human_chr1 : NC_000001.11
-
 -----------------------------------------------------------------------
 Output
 Generated assays are stored in:
@@ -117,7 +110,6 @@ info.txt
 	*_primers.csv
 	*.ape
 	*_feature_library.txt
-
 -----------------------------------------------------------------------
 File Descriptions
 *_primers.txt
@@ -134,14 +126,12 @@ File Descriptions
 
 info.txt
 	Genome location and metadata for the assay.
-
 -----------------------------------------------------------------------
 Genome Storage
 Downloaded genomes are stored locally in:
 	data/genomes
 
 Genomes are downloaded once and reused for future runs.
-
 -----------------------------------------------------------------------
 Requirements
 -Python 3.9 or newer
@@ -151,7 +141,6 @@ Requirements
 Future Improvements
 -Primer design for user defined genome regions
 -BLAT specificity checking
-
 -----------------------------------------------------------------------
 License
 MIT License
