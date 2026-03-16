@@ -25,24 +25,29 @@ def get_base_folder():
     return Path(os.environ.get("PCR_ASSAY_ROOT", BASE_FOLDER))
 
 # -----------------------------
-# YAML Information
+# Check for existing assay folders
 # -----------------------------
-# Load config.yaml
-# CONFIG_FILE = BASE_FOLDER / "config.yaml"
-# with open(CONFIG_FILE) as cf:
-#     config = yaml.safe_load(cf)
-
-# # Pipeline settings
-# ORGANISMS = config.get("organisms", {})
-# PIPELINE_CONFIG = config.get("pipeline", {})
-# ASSAYS_PER_ORG = PIPELINE_CONFIG.get("assays_per_org", 5)
-# REGION_LENGTH = PIPELINE_CONFIG.get("region_length", 1000)
-# EMAIL = PIPELINE_CONFIG.get("email", "your_email@example.com")
-
-# # Primer3 settings
-# PRIMER3_CONFIG = config.get("primer3", {})
-# OUTER_SETTINGS = PRIMER3_CONFIG.get("outer", {})
-# INNER_SETTINGS = PRIMER3_CONFIG.get("inner", {})
+def get_next_assay_number(org_folder, safe_id):
+    """
+    Returns the next available assay number for an organism.
+    Looks for existing folders like <safe_id>_Assay_001, etc.
+    """
+    org_folder.mkdir(parents=True, exist_ok=True)
+    existing_numbers = []
+    pattern = re.compile(rf"{re.escape(safe_id)}_Assay_(\d+)")
+    
+    for f in org_folder.iterdir():
+        if f.is_dir():
+            match = pattern.fullmatch(f.name)
+            if match:
+                existing_numbers.append(int(match.group(1)))
+                
+    if existing_numbers:
+        next_number = max(existing_numbers) + 1
+    else:
+        next_number = 1
+        
+    return next_number
 
 # -----------------------------
 # Helper functions
@@ -355,7 +360,8 @@ def batch_assay_pipeline(
         genome_seq = str(record.seq)
         genome_len = len(genome_seq)
 
-        for i in range(1, assays_per_org + 1):
+        next_i = get_next_assay_number(org_folder, safe_id)
+        for i in range(next_i, next_i + assays_per_org):
 
             attempt = 0
 
