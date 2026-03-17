@@ -12,36 +12,37 @@ import yaml
 # Base folders
 # -----------------------------
 # Automatically set the base folder to the root of the repository
-BASE_FOLDER = Path(__file__).parent.parent.resolve()
-GENOME_FOLDER = BASE_FOLDER / "Designed Assays" / "Genomes"
-OUTPUT_FOLDER = BASE_FOLDER / "Designed Assays" / "Assays by Organism"
+base_folder = Path(__file__).parent.parent.resolve()
+genome_folder = base_folder / "Designed Assays" / "Genomes"
+output_folder = base_folder / "Designed Assays" / "Assays by Organism"
 
 # Make sure directories exist
-GENOME_FOLDER.mkdir(parents=True, exist_ok=True)
-OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
+genome_folder.mkdir(parents=True, exist_ok=True)
+output_folder.mkdir(parents=True, exist_ok=True)
 
 #Set base folder
 def get_base_folder():
-    return Path(os.environ.get("PCR_ASSAY_ROOT", BASE_FOLDER))
+    return Path(os.environ.get("PCR_ASSAY_ROOT", base_folder))
 
 # -----------------------------
 # Check for existing assay folders
 # -----------------------------
+# Finds the next available assay number by scanning existing assay folders
+# (e.g., <safe_id>_Assay_001) and continuing the sequence
+
 def get_next_assay_number(org_folder, safe_id):
-    """
-    Returns the next available assay number for an organism.
-    Looks for existing folders like <safe_id>_Assay_001, etc.
-    """
     org_folder.mkdir(parents=True, exist_ok=True)
     existing_numbers = []
-    pattern = re.compile(rf"{re.escape(safe_id)}_Assay_(\d+)")
+    pattern = re.compile(rf"{re.escape(safe_id)}_Assay_(\d+)") #Folder name pattern for the organism
     
+    #Checking for existing assay folders
     for f in org_folder.iterdir():
         if f.is_dir():
             match = pattern.fullmatch(f.name)
             if match:
                 existing_numbers.append(int(match.group(1)))
-                
+    
+    #Goes to next available number            
     if existing_numbers:
         next_number = max(existing_numbers) + 1
     else:
@@ -52,11 +53,13 @@ def get_next_assay_number(org_folder, safe_id):
 # -----------------------------
 # Helper functions
 # -----------------------------
+#Calculates GC content of a sequence
 def gc_content(seq):
     seq = seq.upper()
     gc_count = seq.count("G") + seq.count("C")
     return 100 * gc_count / len(seq)
 
+#Creates the reverse compliment of a sequence
 def revcomp(seq):
     complement = str.maketrans("ATCGatcg", "TAGCtagc")
     return seq.translate(complement)[::-1]
@@ -64,20 +67,23 @@ def revcomp(seq):
 # -----------------------------
 # NCBI fetcher
 # -----------------------------
+# Downloads the genome region from the config file
+# Skips the download if the genone region is already present in the 'Genomes' folder
+
 class NCBISequenceFetcher:
     def __init__(self, email, genome_dir=None):
-        Entrez.email = email
+        Entrez.email = email #entrez requires a user email to access the database
+        #Making folder to store specific genomes in
         if genome_dir is None:
-            genome_dir = GENOME_FOLDER
+            genome_dir = genome_folder
         self.genome_dir = Path(genome_dir)
         self.genome_dir.mkdir(parents=True, exist_ok=True)
 
     def fetch_genome(self, accession):
-        """Download full genome if missing, hard-masked (N's in repeats)."""
         genome_path = self.genome_dir / f"{accession}_hardmasked.fasta"
         if genome_path.exists():
             print(f"Genome already downloaded: {genome_path.name}")
-            safe_id = re.sub(r'[:<>"/\\|?*]', '_', accession)
+            safe_id = re.sub(r'[:<>"/\\|?*]', '_', accession) #Need to remove the ":" from the name of the NCIB genome range
             return genome_path, safe_id
 
         print(f"Fetching full genome from NCBI (hard-masked): {accession} ...")
@@ -86,7 +92,7 @@ class NCBISequenceFetcher:
             id=accession,
             rettype="fasta",
             retmode="text",
-            mask="soft"  # still downloads lowercase/hard N's depending on NCBI
+            #mask="hard"  # Downloads hard masked 'N' genome. This doesn't actually work. Will need a different solution for masking
         )
         record = SeqIO.read(handle, "fasta")
         SeqIO.write(record, genome_path, "fasta")
@@ -97,8 +103,12 @@ class NCBISequenceFetcher:
 # -----------------------------
 # ApE file writer
 # -----------------------------
+# Function for writing the outer amplicon sequence to an ApE file
+# Annotates the ApE file with the designed primers
+
 def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
 
+    #Generic placeholder primer names
     primer_colors = {
         "outer_forward": "#FF0000",   # red
         "outer_reverse": "#FF0000",
@@ -106,8 +116,9 @@ def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
         "inner_reverse": "#00FFFF"
     }
 
+    #Naming the ApE file
     ape_file = out_dir / f"{assay_name}.ape"
-    seq_upper = outer_amp_seq.upper()
+    seq_upper = outer_amp_seq.upper() #uppercase letters
 
     with open(ape_file, "w") as f:
 
@@ -123,6 +134,7 @@ def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
 
             pos = seq_upper.find(primer_seq)
 
+            #Annotating the ApE file with the designed primers
             if pos != -1:
 
                 start = pos + 1
@@ -133,6 +145,7 @@ def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
                 f.write(f"                     /ApEinfo_fwdcolor={color}\n")
                 f.write(f"                     /ApEinfo_revcolor={color}\n")
 
+            #Reverse Primers
             else:
 
                 pos = seq_upper.find(rc)
@@ -149,6 +162,8 @@ def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
 
         f.write("ORIGIN\n")
 
+        # Writing the outer amplicon sequence in the ApE file
+        # Formatting sequence in chunks of 60 bases, needed for ApE formatting
         for i in range(0, len(outer_amp_seq), 60):
             seq_chunk = outer_amp_seq[i:i+60].upper()
             f.write(f"{i+1:9} {seq_chunk}\n")
@@ -160,6 +175,8 @@ def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
 # -----------------------------
 # ApE feature library writer
 # -----------------------------
+# Function for writing a feature library in the ApE format for future use
+
 def write_ape_feature_library(
     assay_name,
     outer_forward,
@@ -183,20 +200,22 @@ def write_ape_feature_library(
 # -----------------------------
 # Primer design function
 # -----------------------------
-def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings):
-    """
-    Design nested PCR primers for a given sequence.
-    outer_settings and inner_settings must be dictionaries from config.yaml.
-    """
+# Designs nested PCR primers for a given sequence using settings from the config file
+# Saves the primer information in a .csv and .txt file
+# Writes the annotated ApE file and ApE feature library for the designed primers
 
+def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings):
+    
     # -----------------------------
     # Outer primers
     # -----------------------------
+    #Designing outer primers
     outer_results = primer3.bindings.design_primers(
         {'SEQUENCE_ID': safe_id, 'SEQUENCE_TEMPLATE': sequence},
         outer_settings
     )
 
+    #Outer primer results
     outer_forward = outer_results['PRIMER_LEFT_0_SEQUENCE']
     outer_reverse = outer_results['PRIMER_RIGHT_0_SEQUENCE']
     outer_product_size = outer_results['PRIMER_PAIR_0_PRODUCT_SIZE']
@@ -208,20 +227,23 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
     outer_reverse_tm = primer3.calc_tm(outer_reverse)
     outer_forward_gc = gc_content(outer_forward)
     outer_reverse_gc = gc_content(outer_reverse)
-    outer_amplicon_tm = primer3.calc_tm(outer_amplicon_seq)
+    outer_amplicon_tm = primer3.calc_tm(outer_amplicon_seq) #Amplicon Tm based on GC content, not very accurate
 
     # -----------------------------
     # Inner primers
     # -----------------------------
+    # Define inner assay region between outer primers with a 5 bp buffer on each side
     inner_start = outer_left_start + outer_left_len + 5
     inner_end = outer_right_start - outer_right_len - 5
     inner_sequence = sequence[inner_start:inner_end]
 
+    #Designing inner primers
     inner_results = primer3.bindings.design_primers(
         {'SEQUENCE_ID': safe_id + "_inner", 'SEQUENCE_TEMPLATE': inner_sequence},
         inner_settings
     )
 
+    #Inner primer results
     inner_forward = inner_results['PRIMER_LEFT_0_SEQUENCE']
     inner_reverse = inner_results['PRIMER_RIGHT_0_SEQUENCE']
     inner_product_size = inner_results['PRIMER_PAIR_0_PRODUCT_SIZE']
@@ -232,7 +254,7 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
     inner_reverse_tm = primer3.calc_tm(inner_reverse)
     inner_forward_gc = gc_content(inner_forward)
     inner_reverse_gc = gc_content(inner_reverse)
-    inner_amplicon_tm = primer3.calc_tm(inner_amplicon_seq)
+    inner_amplicon_tm = primer3.calc_tm(inner_amplicon_seq) #Amplicon Tm based on GC content, not very accurate
 
     # ----------------------------- 
     # Save TXT
@@ -245,11 +267,11 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
         f.write(f"Forward: {outer_forward.upper()}\n")
         f.write(f"Reverse: {outer_reverse.upper()}\n")
         f.write(f"Reverse (5'->3' revcomp): {revcomp(outer_reverse).upper()}\n")
-        f.write(f"Product size: {outer_product_size}\n")
         f.write(f"Forward Tm: {outer_forward_tm:.2f} °C\n")
         f.write(f"Reverse Tm: {outer_reverse_tm:.2f} °C\n")
         f.write(f"Forward GC%: {outer_forward_gc:.2f}\n")
         f.write(f"Reverse GC%: {outer_reverse_gc:.2f}\n")
+        f.write(f"Product size: {outer_product_size}\n")
         f.write(f"Amplicon Tm (GC approx.): {outer_amplicon_tm:.2f} °C\n")
         f.write(f"Amplicon sequence: {outer_amplicon_seq.upper()}\n\n")
 
@@ -257,11 +279,11 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
         f.write(f"Forward: {inner_forward.upper()}\n")
         f.write(f"Reverse: {inner_reverse.upper()}\n")
         f.write(f"Reverse (5'->3' revcomp): {revcomp(inner_reverse).upper()}\n")
-        f.write(f"Product size: {inner_product_size}\n")
         f.write(f"Forward Tm: {inner_forward_tm:.2f} °C\n")
         f.write(f"Reverse Tm: {inner_reverse_tm:.2f} °C\n")
         f.write(f"Forward GC%: {inner_forward_gc:.2f}\n")
         f.write(f"Reverse GC%: {inner_reverse_gc:.2f}\n")
+        f.write(f"Product size: {inner_product_size}\n")
         f.write(f"Amplicon Tm (GC approx.): {inner_amplicon_tm:.2f} °C\n")
         f.write(f"Amplicon sequence: {inner_amplicon_seq.upper()}\n")
 
@@ -281,28 +303,42 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
         ])
 
         writer.writerow([
-            "Outer", outer_forward.upper(), outer_reverse.upper(), revcomp(outer_reverse).upper(),
+            "Outer", 
+            outer_forward.upper(), 
+            outer_reverse.upper(), 
+            revcomp(outer_reverse).upper(),
+            
+            f"{outer_forward_tm:.2f}", 
+            f"{outer_reverse_tm:.2f}",
+            f"{outer_forward_gc:.2f}", 
+            f"{outer_reverse_gc:.2f}",
             outer_product_size,
-            f"{outer_forward_tm:.2f}", f"{outer_reverse_tm:.2f}",
-            f"{outer_forward_gc:.2f}", f"{outer_reverse_gc:.2f}",
-            f"{outer_amplicon_tm:.2f}", outer_amplicon_seq.upper()
+            f"{outer_amplicon_tm:.2f}", 
+            outer_amplicon_seq.upper()
         ])
 
         writer.writerow([
-            "Inner", inner_forward.upper(), inner_reverse.upper(), revcomp(inner_reverse).upper(),
+            "Inner", 
+            inner_forward.upper(), 
+            inner_reverse.upper(), 
+            revcomp(inner_reverse).upper(),
+            f"{inner_forward_tm:.2f}", 
+            f"{inner_reverse_tm:.2f}",
+            f"{inner_forward_gc:.2f}", 
+            f"{inner_reverse_gc:.2f}",
             inner_product_size,
-            f"{inner_forward_tm:.2f}", f"{inner_reverse_tm:.2f}",
-            f"{inner_forward_gc:.2f}", f"{inner_reverse_gc:.2f}",
-            f"{inner_amplicon_tm:.2f}", inner_amplicon_seq.upper()
+            f"{inner_amplicon_tm:.2f}", 
+            inner_amplicon_seq.upper()
         ])
 
     # -----------------------------
-    # Write ApE file (auto annotated)
+    # Write annotated ApE file
     # -----------------------------
     ape_file = write_ape_file(
         safe_id,
         outer_amplicon_seq,
         {
+            #Placeholder generic primer names
             "outer_forward": outer_forward,
             "outer_reverse": outer_reverse,
             "inner_forward": inner_forward,
@@ -325,12 +361,16 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
 
     return primer_file, csv_file, ape_file, feature_file
 
-
 # -----------------------------
 # Batch assay design
 # -----------------------------
-MAX_ATTEMPTS_PER_ASSAY = 10
+#Calls all previously defined functions to design primers for the organisms provided in the config file
 
+#Sometimes Primer3 is unable to design inner with the given config settings.
+# If this occurs, a new region of the genome will be designed for up to the max attempts value
+max_attempts_per_assay = 10
+
+#Calling user settings from the config file
 def batch_assay_pipeline(
     organisms,
     assays_per_org,
@@ -340,43 +380,52 @@ def batch_assay_pipeline(
     inner_primer_settings
 ):
 
-    # Use these settings directly instead of re-reading the config
+    # Settings from the config file
     outer_settings = outer_primer_settings or {}
     inner_settings = inner_primer_settings or {}
 
+    #Calls the genome fetcher class
     fetcher = NCBISequenceFetcher(email=email)
 
+    #Iterates through the organisms in the config file
     for org_name, accession in organisms.items():
 
         print(f"\nProcessing organism: {org_name}")
 
+        #Fetching genomes and storing them in the genome folder
         genome_path, safe_id = fetcher.fetch_genome(accession)
 
-        org_folder = OUTPUT_FOLDER / f"{safe_id}_{org_name}"
+        #Creating specific organsim folder
+        org_folder = output_folder / f"{safe_id}_{org_name}"
         org_folder.mkdir(exist_ok=True)
 
+        #Opening the fasta sequence file
         record = next(SeqIO.parse(genome_path, "fasta"))
 
         genome_seq = str(record.seq)
         genome_len = len(genome_seq)
 
+        #Creates specified number of assays for each organism
         next_i = get_next_assay_number(org_folder, safe_id)
         for i in range(next_i, next_i + assays_per_org):
 
             attempt = 0
 
-            while attempt < MAX_ATTEMPTS_PER_ASSAY:
+            while attempt < max_attempts_per_assay:
 
                 attempt += 1
 
-                start = random.randint(0, genome_len - region_length)
+                #Assays are designed for random regions of the genome. A random number generator is used to pick the regions
+                start = random.randint(0, genome_len - region_length) 
                 end = start + region_length
 
                 assay_seq = genome_seq[start:end]
 
+                #Creating specific assay folder
                 assay_folder = org_folder / f"{safe_id}_Assay_{i:03d}"
                 assay_folder.mkdir(exist_ok=True)
 
+                #Info file of the genome location is recorded
                 info_file = assay_folder / "info.txt"
 
                 with open(info_file, "w") as f:
@@ -397,10 +446,12 @@ def batch_assay_pipeline(
                         inner_settings
                     )
 
+                #If an assay design fails
                 except KeyError:
 
                     print(f"Attempt {attempt}: Inner primers not found, retrying...")
 
+                    #Removing directory for failed assay design
                     assay_folder.rmdir()
 
                     continue
@@ -411,10 +462,11 @@ def batch_assay_pipeline(
                 )
 
                 break
-
+            
+            #If no assays can be designed within the max number of attempts
             else:
 
                 print(
                     f"Warning: Could not generate assay {i:03d} "
-                    f"after {MAX_ATTEMPTS_PER_ASSAY} attempts"
+                    f"after {max_attempts_per_assay} attempts"
                 )
