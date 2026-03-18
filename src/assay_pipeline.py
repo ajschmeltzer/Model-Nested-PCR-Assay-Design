@@ -7,7 +7,6 @@ import primer3
 import csv
 import yaml
 
-
 # -----------------------------
 # Base folders
 # -----------------------------
@@ -136,10 +135,8 @@ def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
 
             #Annotating the ApE file with the designed primers
             if pos != -1:
-
                 start = pos + 1
                 end = pos + len(primer_seq)
-
                 f.write(f"     primer_bind     {start}..{end}\n")
                 f.write(f"                     /label=\"{name}\"\n")
                 f.write(f"                     /ApEinfo_fwdcolor={color}\n")
@@ -147,14 +144,10 @@ def write_ape_file(assay_name, outer_amp_seq, primers, out_dir):
 
             #Reverse Primers
             else:
-
                 pos = seq_upper.find(rc)
-
                 if pos != -1:
-
                     start = pos + 1
                     end = pos + len(primer_seq)
-
                     f.write(f"     primer_bind     complement({start}..{end})\n")
                     f.write(f"                     /label=\"{name}\"\n")
                     f.write(f"                     /ApEinfo_fwdcolor={color}\n")
@@ -185,11 +178,10 @@ def write_ape_feature_library(
     inner_reverse,
     assay_folder
 ):
-
+    
     feature_file = assay_folder / f"{assay_name}_feature_library.txt"
 
     with open(feature_file, "w") as f:
-
         f.write(f"outer_forward\t{outer_forward}\tprimer_bind\tred\n")
         f.write(f"outer_reverse\t{outer_reverse}\tprimer_bind\tred\tred\n")
         f.write(f"inner_forward\t{inner_forward}\tprimer_bind\tcyan\n")
@@ -262,7 +254,6 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
     primer_file = assay_folder / f"{safe_id}_primers.txt"
 
     with open(primer_file, "w") as f:
-
         f.write("=== Outer Primers ===\n")
         f.write(f"Forward: {outer_forward.upper()}\n")
         f.write(f"Reverse: {outer_reverse.upper()}\n")
@@ -293,7 +284,6 @@ def design_assay(sequence, safe_id, assay_folder, outer_settings, inner_settings
     csv_file = assay_folder / f"{safe_id}_primers.csv"
 
     with open(csv_file, "w", newline="") as csvf:
-
         writer = csv.writer(csvf)
 
         writer.writerow([
@@ -437,7 +427,6 @@ def batch_assay_pipeline(
                 assay_safe_id = f"{safe_id}_{start}_{end}"
 
                 try:
-
                     primer_file, csv_file, ape_file, feature_file = design_assay(
                         assay_seq,
                         assay_safe_id,
@@ -448,7 +437,6 @@ def batch_assay_pipeline(
 
                 #If an assay design fails
                 except KeyError:
-
                     print(f"Attempt {attempt}: Inner primers not found, retrying...")
 
                     #Removing directory for failed assay design
@@ -465,7 +453,6 @@ def batch_assay_pipeline(
             
             #If no assays can be designed within the max number of attempts
             else:
-
                 print(
                     f"Warning: Could not generate assay {i:03d} "
                     f"after {max_attempts_per_assay} attempts"
