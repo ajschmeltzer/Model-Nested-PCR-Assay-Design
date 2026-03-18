@@ -79,7 +79,7 @@ class NCBISequenceFetcher:
         self.genome_dir.mkdir(parents=True, exist_ok=True)
 
     def fetch_genome(self, accession):
-        genome_path = self.genome_dir / f"{accession}_hardmasked.fasta"
+        genome_path = self.genome_dir / f"{accession}.fasta"
         if genome_path.exists():
             print(f"Genome already downloaded: {genome_path.name}")
             safe_id = re.sub(r'[:<>"/\\|?*]', '_', accession) #Need to remove the ":" from the name of the NCIB genome range
